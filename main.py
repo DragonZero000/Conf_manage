@@ -44,7 +44,7 @@ while command[0] != "exit":
                 args.append(comp[2:])
             elif comp != "" and comp[0] == "-":
                 args.extend(list(comp[1:]))
-        print(args)
+        #print(args)
         if len(args) > 0:
             for i in args:
                 if i not in active_commands[command[0]]:
