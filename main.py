@@ -1,4 +1,5 @@
 import os
+import argparse
 
 def input_parser(com):
     com = com.split(' ')
@@ -19,6 +20,12 @@ def cd(args):
         output += f" {i}"
     print(output)
 
+start_args_for_main = argparse.ArgumentParser()
+start_args_for_main.add_argument("--vfs_path", required=False, default="null")
+start_args_for_main.add_argument("--script_path", required=False, default="null")
+start_args_for_main = start_args_for_main.parse_args()
+print(f"vfs path: {start_args_for_main.vfs_path}")
+print(f"start script path: {start_args_for_main.script_path}")
 username = os.getlogin()
 main_input_part = f"{username}@localhost: "
 current_path = "~"
