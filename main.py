@@ -31,16 +31,18 @@ main_input_part = f"{username}@localhost: "
 current_path = "~"
 error = False
 active_commands = {"exit":[],
-                   "ls":["h","help","a","conf"],
+                   "ls":["h","help","a","conf", "l"],
                    "cd":["h","help","a"]}
-command = input_parser(input(input_str()))
-while command[0] != "exit":
+
+def process_command(command_str):
+    global error
+    command = input_parser(command_str)
+    if not command:
+        return False
     if command[0] not in active_commands:
         print(f"{command[0]} is not a valid command.")
-        command = input_parser(input(input_str()))
-        continue
+        return True
     args = []
-    #print(command)
     if len(command) > 1:
         for comp in command[1:]:
             if comp == "-" or comp == "--":
@@ -49,19 +51,43 @@ while command[0] != "exit":
                 break
             if comp[:2] == "--":
                 args.append(comp[2:])
-            elif comp != "" and comp[0] == "-":
+            elif comp[0] == "-":
                 args.extend(list(comp[1:]))
-        #print(args)
-        if len(args) > 0:
-            for i in args:
-                if i not in active_commands[command[0]]:
-                    print(f"{i} no such args.")
-                    command = input_parser(input(input_str()))
-                    break
-    if error is False:
+        if error:
+            return True
+
+        for i in args:
+            if i not in active_commands[command[0]]:
+                print(f"{i} no such args.")
+                return True
+    if not error:
         if command[0] == "ls":
             ls(command[1:])
         elif command[0] == "cd":
             cd(command[1:])
-    command = input_parser(input(input_str()))
+
+    return error
+
+if start_args_for_main.script_path != "null":
+    try:
+        with open(start_args_for_main.script_path, 'r') as script_file:
+            for line in script_file:
+                command_str = line.strip()
+                if not command_str:
+                    continue
+                print(input_str(current_path) + command_str)
+                had_error = process_command(command_str)
+                if had_error:
+                    break
+                error = False
+    except FileNotFoundError:
+        print(f"Script file not found: {start_args_for_main.script_path}")
+while True:
+    command_str = input(input_str(current_path)).strip()
+    if not command_str:
+        continue
+    command = input_parser(command_str)
+    if command[0] == "exit":
+        break
+    had_error = process_command(command_str)
     error = False
