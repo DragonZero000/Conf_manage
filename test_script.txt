@@ -1,4 +1,6 @@
-ls -la
-cd /home
-unknowncmd
 ls
+ls -l
+cd /
+vfs-info
+unk
+exit
