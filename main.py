@@ -141,41 +141,6 @@ def cd(raw_args):
         return
     current_dir = target
 
-start_args_for_main = argparse.ArgumentParser()
-start_args_for_main.add_argument("--vfs_path", required=False, default="null")
-start_args_for_main.add_argument("--script_path", required=False, default="null")
-start_args_for_main = start_args_for_main.parse_args()
-vfs_path = start_args_for_main.vfs_path
-script_path = start_args_for_main.script_path
-print(f"vfs path: {vfs_path}")
-print(f"start script path: {script_path}")
-
-vfs_zip = None
-vfs_name = None
-vfs_hash = None
-if vfs_path != "null":
-    try:
-        with open(vfs_path, 'rb') as f:
-            vfs_data = f.read()
-        vfs_hash = hashlib.sha256(vfs_data).hexdigest()
-        vfs_zip = zipfile.ZipFile(io.BytesIO(vfs_data))
-        vfs_name = os.path.basename(vfs_path)
-    except FileNotFoundError:
-        print(f"VFS file not found: {vfs_path}")
-    except zipfile.BadZipFile:
-        print("Invalid ZIP format.")
-    except Exception as e:
-        print(f"Error loading VFS: {e}")
-
-username = os.getlogin()
-main_input_part = f"{username}@localhost: "
-current_dir = "/"
-error = False
-active_commands = {"exit":[],
-                   "ls":["h","help","a","conf", "l"],
-                   "cd":["h","help","a"],
-                   "vfs-info":[]}
-
 def process_command(command_str):
     global error
     command = input_parser(command_str)
@@ -213,6 +178,41 @@ def process_command(command_str):
             else:
                 print(f"{vfs_name} {vfs_hash}")
     return error
+
+start_args_for_main = argparse.ArgumentParser()
+start_args_for_main.add_argument("--vfs_path", required=True, default="null")
+start_args_for_main.add_argument("--script_path", required=False, default="null")
+start_args_for_main = start_args_for_main.parse_args()
+vfs_path = start_args_for_main.vfs_path
+script_path = start_args_for_main.script_path
+print(f"vfs path: {vfs_path}")
+print(f"start script path: {script_path}")
+
+vfs_zip = None
+vfs_name = None
+vfs_hash = None
+if vfs_path != "null":
+    try:
+        with open(vfs_path, 'rb') as f:
+            vfs_data = f.read()
+        vfs_hash = hashlib.sha256(vfs_data).hexdigest()
+        vfs_zip = zipfile.ZipFile(io.BytesIO(vfs_data))
+        vfs_name = os.path.basename(vfs_path)
+    except FileNotFoundError:
+        print(f"VFS file not found: {vfs_path}")
+    except zipfile.BadZipFile:
+        print("Invalid ZIP format.")
+    except Exception as e:
+        print(f"Error loading VFS: {e}")
+
+username = os.getlogin()
+main_input_part = f"{username}@localhost: "
+current_dir = "/"
+error = False
+active_commands = {"exit":[],
+                   "ls":["h","help","a","conf", "l"],
+                   "cd":["h","help","a"],
+                   "vfs-info":[]}
 
 if script_path != "null":
     try:
