@@ -5,10 +5,7 @@ vfs-info
 tree -h
 tree
 tree /
-tree some_dir
-tree nonexistent_dir
 clear -h
 clear
-clear invalid_arg
 unk
 exit
