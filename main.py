@@ -70,6 +70,17 @@ def get_dir_contents(dir_path):
                     subitems.add(item)
     return list(subitems)
 
+def print_tree(dir_path, prefix=""):
+    contents = get_dir_contents(dir_path)
+    contents.sort()
+    pointers = ["├── "] * (len(contents) - 1) + ["└── "] if contents else []
+    for pointer, item in zip(pointers, contents):
+        print(prefix + pointer + item)
+        full_path = normalize_path(item, dir_path)
+        if is_dir(full_path):
+            extension = "│   " if pointer == "├── " else "    "
+            print_tree(full_path, prefix + extension)
+
 def ls(raw_args):
     global error
     if vfs_zip is None:
@@ -130,7 +141,6 @@ def cd(raw_args):
     if "help" in opts or "h" in opts:
         print("cd: change directory")
         return
-    # For other opts like a - no implementation
     if path_arg is None:
         target = "/"
     else:
@@ -140,6 +150,64 @@ def cd(raw_args):
         error = True
         return
     current_dir = target
+
+def tree(raw_args):
+    global error
+    if vfs_zip is None:
+        print("No VFS loaded.")
+        error = True
+        return
+    opts = set()
+    paths = []
+    for arg in raw_args:
+        if arg.startswith("--"):
+            opts.add(arg[2:])
+        elif arg.startswith("-"):
+            for o in arg[1:]:
+                opts.add(o)
+        else:
+            paths.append(arg)
+    if "help" in opts or "h" in opts:
+        print("tree: list contents of directories in a tree-like format")
+        return
+    if not paths:
+        paths = ["."]
+    for idx, p in enumerate(paths):
+        target = normalize_path(p, current_dir)
+        if len(paths) > 1:
+            if idx > 0:
+                print()
+            print(f"{p}:")
+        if is_file(target):
+            print(os.path.basename(target))
+        elif is_dir(target):
+            header = "." if target == "/" else os.path.basename(target)
+            print(header)
+            print_tree(target, "")
+        else:
+            print(f"tree: cannot access '{p}': No such file or directory")
+            error = True
+
+def clear(raw_args):
+    global error
+    opts = set()
+    args = []
+    for arg in raw_args:
+        if arg.startswith("--"):
+            opts.add(arg[2:])
+        elif arg.startswith("-"):
+            for o in arg[1:]:
+                opts.add(o)
+        else:
+            args.append(arg)
+    if "help" in opts or "h" in opts:
+        print("clear: clear the terminal screen")
+        return
+    if args:
+        print(f"clear: unrecognized argument: {' '.join(args)}")
+        error = True
+        return
+    os.system('cls' if os.name == 'nt' else 'clear')
 
 def process_command(command_str):
     global error
@@ -177,6 +245,10 @@ def process_command(command_str):
                 print("No VFS loaded.")
             else:
                 print(f"{vfs_name} {vfs_hash}")
+        elif command[0] == "tree":
+            tree(command[1:])
+        elif command[0] == "clear":
+            clear(command[1:])
     return error
 
 start_args_for_main = argparse.ArgumentParser()
@@ -212,7 +284,9 @@ error = False
 active_commands = {"exit":[],
                    "ls":["h","help","a","conf", "l"],
                    "cd":["h","help","a"],
-                   "vfs-info":[]}
+                   "vfs-info":[],
+                   "tree":["h","help"],
+                   "clear":["h","help"]}
 
 if script_path != "null":
     try:
