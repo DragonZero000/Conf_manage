@@ -3,10 +3,10 @@ import argparse
 import zipfile
 import hashlib
 import io
+import shlex
 
 def input_parser(com):
-    com = com.split(' ')
-    return com
+    return shlex.split(com)
 
 def input_str(cur_path="/" ):
     if cur_path == "/":
